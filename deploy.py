@@ -1,9 +1,14 @@
 from flask import Flask, request, json, jsonify, render_template
 from flask_pymongo import PyMongo
 import random
+import os
 
 app = Flask(__name__)
 mongo = PyMongo(app)
+
+if 'MONGO_URI' in os.environ:
+    app.config['MONGO_URI'] = os.environ['MONGO_URI']
+
 
 @app.route('/')
 def e2e_home_page():
