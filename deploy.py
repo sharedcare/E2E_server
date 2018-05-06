@@ -51,6 +51,9 @@ def register():
     response = app.response_class(
         status=200,
         mimetype='application/json',
+        headers={
+            'Access-Control-Allow-Origin': '*'
+        },
         response=json.dumps({'id': id})
     )
     return response
@@ -69,6 +72,9 @@ def request_key():
     response = app.response_class(
         status=200,
         mimetype='application/json',
+        headers={
+            'Access-Control-Allow-Origin': '*'
+        },
         response=res_text
     )
     return response
