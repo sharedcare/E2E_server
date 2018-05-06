@@ -2,6 +2,8 @@ from flask import Flask, request, json, jsonify, render_template
 from flask_pymongo import PyMongo
 import random
 import os
+import time
+
 
 app = Flask(__name__)
 
@@ -33,7 +35,7 @@ def get():
 
 @app.route('/remove')
 def remove():
-    mongo.db.test.remove()
+    mongo.db.preKeyBundle.remove()
     return 'Removed'
 
 
@@ -46,7 +48,7 @@ def register():
     while id in ids:
         id = random.randint(0, 999999)
 
-    data = {"id": id, "preKeyBundle": body}
+    data = {"id": id, "preKeyBundle": body, "expireTime": time.time() + 60*60*3}
     pre_key_bundle.insert(data)
     response = app.response_class(
         status=200,
