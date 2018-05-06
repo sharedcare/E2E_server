@@ -5,8 +5,6 @@ import os
 import re
 
 app = Flask(__name__)
-mongo = PyMongo(app)
-
 if 'MONGODB_URI' in os.environ:
     mongo_uri = os.environ['MONGODB_URI']
     app.config['MONGO_URI'] = mongo_uri
@@ -17,7 +15,8 @@ if 'MONGODB_URI' in os.environ:
     app.config['MONGO_USERNAME'] = mongo_uri[2]
     app.config['MONGO_PASSWORD'] = mongo_uri[3]
 
-print(os.environ['MONGODB_URI'])
+mongo = PyMongo(app)
+
 
 @app.route('/')
 def e2e_home_page():
