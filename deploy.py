@@ -2,18 +2,11 @@ from flask import Flask, request, json, jsonify, render_template
 from flask_pymongo import PyMongo
 import random
 import os
-import re
 
 app = Flask(__name__)
+
 if 'MONGODB_URI' in os.environ:
-    mongo_uri = os.environ['MONGODB_URI']
-    app.config['MONGO_URI'] = mongo_uri
-    mongo_uri = re.split('//|/|:|@', mongo_uri)
-    app.config['MONGO_DBNAME'] = mongo_uri[-1]
-    app.config['MONGO_HOST'] = mongo_uri[4]
-    app.config['MONGO_PORT'] = mongo_uri[-2]
-    app.config['MONGO_USERNAME'] = mongo_uri[2]
-    app.config['MONGO_PASSWORD'] = mongo_uri[3]
+    app.config['MONGO_URI'] = os.environ['MONGODB_URI']
 
 mongo = PyMongo(app)
 
