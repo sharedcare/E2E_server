@@ -6,8 +6,8 @@ import os
 app = Flask(__name__)
 mongo = PyMongo(app)
 
-if 'MONGO_URI' in os.environ:
-    app.config['MONGO_URI'] = os.environ['MONGO_URI']
+if 'MONGODB_URI' in os.environ:
+    app.config['MONGO_URI'] = os.environ['MONGODB_URI']
 
 
 @app.route('/')
