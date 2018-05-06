@@ -8,6 +8,7 @@ mongo = PyMongo(app)
 
 if 'MONGODB_URI' in os.environ:
     app.config['MONGO_URI'] = os.environ['MONGODB_URI']
+    app.config['MONGO_DBNAME'] = os.environ['MONGODB_URI'].split('/')[-1]
 
 
 @app.route('/')
