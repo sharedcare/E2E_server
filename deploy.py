@@ -17,6 +17,7 @@ if 'MONGODB_URI' in os.environ:
     app.config['MONGO_USERNAME'] = mongo_uri[2]
     app.config['MONGO_PASSWORD'] = mongo_uri[3]
 
+print(os.environ['MONGODB_URI'])
 
 @app.route('/')
 def e2e_home_page():
