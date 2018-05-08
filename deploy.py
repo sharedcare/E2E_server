@@ -3,6 +3,7 @@ from flask_pymongo import PyMongo
 import random
 import os
 import time
+import string
 
 
 app = Flask(__name__)
@@ -48,7 +49,9 @@ def register():
     while id in ids:
         id = random.randint(0, 999999)
 
-    data = {"id": id, "preKeyBundle": body, "expireTime": time.time() + 60*60*3}
+    access_token = random_generator(32)
+
+    data = {"id": id, "preKeyBundle": body, "expireTime": time.time() + 60*60*3, "accessToken": access_token}
     pre_key_bundle.insert(data)
     response = app.response_class(
         status=200,
@@ -56,7 +59,7 @@ def register():
         headers={
             'Access-Control-Allow-Origin': '*'
         },
-        response=json.dumps({'id': id})
+        response=json.dumps({'id': id, "accessToken": access_token})
     )
     return response
 
@@ -94,6 +97,9 @@ def receive():
         response=json.dumps(data)
     )
     return response
+
+def random_generator(size=6, chars=string.ascii_uppercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
 
 if __name__ == '__main__':
     app.run()
