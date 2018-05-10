@@ -96,7 +96,8 @@ def connect():
         return response
 
     if request.method == 'POST':
-        body = request.get_json()
+        body = request.get_json(force=True)
+        print(body)
         receiver_id = int(body['receiverId'])
         
         sender_id = id
@@ -180,7 +181,7 @@ def confirm():
         return response
         
     if request.method == 'POST':
-        body = request.get_json()
+        body = request.get_json(force=True)
         
         receiver_id = id
         sender_id = int(body['senderId'])
