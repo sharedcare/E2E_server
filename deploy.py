@@ -26,6 +26,8 @@ def e2e_home_page():
 @app.route('/remove')
 def remove():
     mongo.db.preKeyBundle.remove()
+    mongo.db.idToken.remove()
+    mongo.db.msg.remove()
     return 'Removed'
 
 
