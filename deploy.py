@@ -150,11 +150,25 @@ def confirm():
         return response
     
     if request.method == 'GET':
-        msg = msg_table.find_one({'receiverId': id, 'type': REQUEST})
+        msg = msg_table.find_one({'receiverId': id, 'type': CONFIRM})
         if msg:
-            res_text = json.dumps({'senderId': msg['senderId'], 'status': SUCCESS_STAT})
+            print(msg)
+            msg_table.remove({"_id": msg["_id"]})
+            res_text = json.dumps({'receiverId': msg['senderId'], 
+                                   'isConfirm': True,
+                                   'perKeyBundle': msg['data'],
+                                   'status': SUCCESS_STAT})
         else:
-            res_text = json.dumps({'status': SUCCESS_STAT, 'msg': 'no connect request'})
+            msg = msg_table.find_one({'receiverId': id, 'type': DECLINE})
+            
+            if msg:
+                msg_table.remove({"_id": msg["_id"]})
+                res_text = json.dumps({'receiverId': msg['senderId'], 
+                                   'isConfirm': False,
+                                   'status': SUCCESS_STAT})
+                                   
+            else:
+                res_text = json.dumps({'status': SUCCESS_STAT, 'msg': 'no confirm'})
         
         response = app.response_class(
             status=200,
@@ -164,6 +178,68 @@ def confirm():
         )
         
         return response
+        
+    if request.method == 'POST':
+        body = request.get_json()
+        
+        receiver_id = id
+        sender_id = int(body['senderId'])
+        is_confirm = body['isConfirm']
+        
+        msg = msg_table.find_one({'receiverId': id, 'senderId': sender_id, 'type': REQUEST})
+        if msg:
+            msg_table.remove({"_id": msg["_id"]})
+            
+            if is_confirm == "True":
+                receiver_preKeyBundle = per_key_table.find_one({'id': receiver_id})
+                if receiver_preKeyBundle:
+                    per_key_table.remove({"_id": receiver_preKeyBundle["_id"]})
+                    
+                    msg_data = {'senderId': receiver_id, 'receiverId': sender_id, 'type': CONFIRM, 'data': receiver_preKeyBundle['preKeyBundle']}
+                    msg_table.insert(msg_data)
+                    
+                # TODO: Handle receiver_preKeyBundle not found
+                
+                sender_preKeyBundle = per_key_table.find_one({'id': sender_id})
+                if sender_preKeyBundle:
+                    per_key_table.remove({"_id": sender_preKeyBundle["_id"]})
+                    
+                    res_text = json.dumps({'status': SUCCESS_STAT, 'preKeyBundle': sender_preKeyBundle['preKeyBundle']})
+                    
+                    response = app.response_class(
+                        status=200,
+                        mimetype='application/json',
+                        headers=CUSTOM_HEADER,
+                        response=res_text
+                    )
+                    return response
+                    
+                # TODO: Handle receiver_preKeyBundle not found
+                    
+            else:
+                msg_data = {'senderId': receiver_id, 'receiverId': sender_id, 'type': DECLINE}
+                msg_table.insert(msg_data)
+                
+                res_text = json.dumps({'status': SUCCESS_STAT})
+                
+                response = app.response_class(
+                    status=200,
+                    mimetype='application/json',
+                    headers=CUSTOM_HEADER,
+                    response=res_text
+                )
+                return response
+            
+        else:
+            res_text = json.dumps({'status': FAIL_STAT, 'msg': 'connection request not found'})
+            
+            response = app.response_class(
+                status=200,
+                mimetype='application/json',
+                headers=CUSTOM_HEADER,
+                response=res_text
+            )
+            return response
 
 
 @app.route('/send', methods=['POST'])
