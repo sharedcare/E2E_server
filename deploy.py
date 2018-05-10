@@ -102,6 +102,18 @@ def connect():
         
         sender_id = id
         
+        if int(receiver_id) == int(sender_id):
+            res_text = json.dumps({'status': FAIL_STAT, 'msg': 'you cannot connect to yourself'})
+            
+            response = app.response_class(
+                status=200,
+                mimetype='application/json',
+                headers=CUSTOM_HEADER,
+                response=res_text
+            )
+            
+            return response
+        
         receiver_id_token = id_token_table.find_one({'id': receiver_id})
         if receiver_id_token:
             receiver_id = receiver_id_token['id']
