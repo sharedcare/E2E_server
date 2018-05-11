@@ -165,7 +165,6 @@ def confirm():
     if request.method == 'GET':
         msg = msg_table.find_one({'receiverId': id, 'type': CONFIRM})
         if msg:
-            print(msg)
             msg_table.remove({"_id": msg["_id"]})
             res_text = json.dumps({'receiverId': msg['senderId'], 
                                    'isConfirm': True,
