@@ -5,10 +5,14 @@ import os
 import time
 import string
 
+# response header
 CUSTOM_HEADER = {'Access-Control-Allow-Origin': '*'}
+# msg type
 REQUEST = 'request'
+MSG = 'msg'
 CONFIRM = 'confirm'
 DECLINE = 'decline'
+# return status
 SUCCESS_STAT = 'success'
 FAIL_STAT = 'failed'
 
@@ -254,30 +258,70 @@ def confirm():
             return response
 
 
-@app.route('/send', methods=['POST'])
-def send():
-    return 'Send'
+@app.route('/msg', methods=['GET', 'POST'])
+def msg():
+    msg_table = mongo.db.msg
 
+    query_params = request.args
+    access_token = query_params.get('accessToken')
 
-@app.route('/receive')
-def receive():
-    data = {'key': 'value'}
-    response = app.response_class(
-        status=200,
-        mimetype='application/json',
-        response=json.dumps(data)
-    )
-    return response
+    id = get_id_from_token(access_token)
+
+    if not id:
+        res_text = json.dumps({'status': FAIL_STAT, 'msg': 'access token not found'})
+        response = app.response_class(
+            status=200,
+            mimetype='application/json',
+            headers=CUSTOM_HEADER,
+            response=res_text
+        )
+        return response
+
+    # Receive message
+    if request.method == 'GET':
+        sender_id = query_params.get('id')
+        receiver_id = id
+        msg = msg_table.find_one({'senderId': sender_id, 'receiverId': receiver_id, 'type': MSG})
+        if msg:
+            res_text = json.dumps({'status': SUCCESS_STAT, 'data': msg['data']})
+            msg_table.remove({"_id": msg["_id"]})
+        else:
+            res_text = json.dumps({'status': SUCCESS_STAT, 'msg': 'no msg data'})
+
+        response = app.response_class(
+            status=200,
+            mimetype='application/json',
+            headers=CUSTOM_HEADER,
+            response=res_text
+        )
+        return response
+
+    # Send message
+    elif request.method == 'POST':
+        sender_id = id
+        body = request.get_json(force=True)
+        data = body['data']
+        receiver_id = body['receiverId']
+        msg_table.insert({'senderId': sender_id, 'receiverId': receiver_id, 'type': MSG, 'data': data})
+        res_text = json.dumps({'status': SUCCESS_STAT})
+
+        response = app.response_class(
+            status=200,
+            mimetype='application/json',
+            headers=CUSTOM_HEADER,
+            response=res_text
+        )
+        return response
 
 
 def random_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
 
-def get_id_from_token(accessToken):
+def get_id_from_token(access_token):
     id_token_table = mongo.db.idToken
     
-    id_token = id_token_table.find_one({'accessToken': accessToken})
+    id_token = id_token_table.find_one({'accessToken': access_token})
     
     if id_token:
         return id_token['id']
